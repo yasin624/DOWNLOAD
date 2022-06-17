@@ -37,15 +37,60 @@ klas = True ise "//**" olmalı bu otomatik klasör indirme işlemi yapacaktır
 
 
 class indir():
-    def __init__(self,klasor="",klas=True,file=None):
+    def __init__(self,klasor,klas=True):
         self.klasor=klasor
-        self.file=file
-        self.klasor_ismi= self.klasör_ismi() if klas ==True else ""
+        self.file=""
+        self.klas=klas
+        self.klasor_ismi = self.links_select()
+        
         
         self.dosya_klasor_islemleri(klasor)
         self.video_list=self.dosya_ayikla()
+        
+
+
+
+    def links_select(self):
+        print( "\n indirme linklerinizin olduğu dosyayı seçin ")
+        print("-"*50)
+        print("\n")
+        
+        links=[]
+        s=1
+        for i in os.listdir():
+            if i.endswith(".txt"):
+                links.append([s,i])
+                print(f"{s}- {i}")
+                s+=1
+        links.append([s,"local"])
+        print(f"{s}- başka bir konum ver \n\n")
+        
+        sel=input("select ==>> ")
+        print("\n")
+        
+        err=False
+        for k in links:
+            if sel==str(k[0]):
+                err=False
+                if k[1]=="local":
+                    self.file=input("url : ")
+                else:
+                    print("girdi")
+                    self.file=k[1]
+                break
+            else:
+                err=True
+        if err:
+            self.error("hata lütfen şıklardan birini seçin .. ")
+            self.links_select()
+
+
+
+        links_name =self.klasör_ismi() if self.klas == True else ""
+        return links_name
     def klasör_ismi(self):
         ##################################### dosya isimleri alma
+        
         icerik=None
         with open (self.file,"r",encoding="utf-8") as f:
             icerik=f.read()
@@ -53,7 +98,13 @@ class indir():
         for i in icerik.split("\n"):
             if i.startswith("//**"):
                name.append(i[4:])
-        return name
+
+        if len(name)<1:
+            self.error("dosyada indirilecek lik yok tekrar deneyiniz ")
+            self.links_select()
+            
+        else:
+            return name
         
         
     def dosya_ayikla(self):
@@ -119,34 +170,59 @@ class indir():
                 print("indirildi ...")
             else:
                 return True
+    def error(self,text,sor=False):
+        
+        print("\n")
+        print("-"*50)
+        print(text)
+        print("-"*50)
+        print("\n")
+
+        if sor :
+            print("""
+
+                {1} - YENİ LİNK DOSYASINI SEÇİN
+                {2} - ÇIK
+            
+            """)
+
+            sec=input("selec ==>> ")
+
+            if sec=="1":
+                self.links_select()
+            else:
+                print("\n\n çıkılıyor ...")
+                exit()
+    
     def dowland(self):
         new_dir=0
+        dosya=True
         for s,i in enumerate(self.video_list):
             if i=="new_dir":
                 new_l=self.klasor+"/{}".format(self.klasor_ismi[new_dir])
+                
                 print(f"\n\n {self.klasor_ismi[new_dir]} klasörü indiriliyor lütfen bekleyin ..." )
                 print("---- "*10)
+                
                 time.sleep(1)
                 self.sorgula(new_l)
                 new_dir+=1
             else:
                 print(f"\n{i[0]}.dosyası indiriliyor lütfen bekleyin ..." )
                 print("---- "*10)
-                        
-                if self.sorgula(new_l,i[0]) :
-                    time.sleep(3)
-                    file_name=new_l+"/"+i[0]
-                    url=i[1]
-                    self.start(file_name,url)
+                try:
+                    if self.sorgula(new_l,i[0]) :
+                        time.sleep(3)
+                        file_name=new_l+"/"+i[0]
+                        url=i[1]
+                        self.start(file_name,url)
+                except :
+                    dosya=False 
+        if dosya:
+            self.error(" dosyadaki linkler hatalı veya dosya biçimi hatalı \n lütfen kontrol ediniz .. " ,sor=True)
+        
                 
                 
 
-indirici=indir(klasor="deneme_videosu",file="deneme_video_linkleri.txt")
+indirici=indir(klasor="new_videos")
 indirici.dowland()
-                
-
-
-
-
-
-            
