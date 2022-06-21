@@ -41,7 +41,9 @@ class indir():
         self.klasor=klasor
         self.file=""
         self.klas=klas
-        self.klasor_ismi = self.links_select()
+        self.links_select()
+        
+        self.klasor_ismi =self.alt_klasör_ismi() if self.klas == True else "" 
         
         
         self.dosya_klasor_islemleri(klasor)
@@ -49,35 +51,51 @@ class indir():
         
 
 
-
-    def links_select(self):
+    def Menu(self):
         print( "\n indirme linklerinizin olduğu dosyayı seçin ")
         print("-"*50)
         print("\n")
         
         links=[]
+        menu=os.listdir()+["başka bir konum ver","url ver","çıkış"]
         s=1
-        for i in os.listdir():
-            if i.endswith(".txt"):
+        for i in menu:
+            if i.endswith(".txt") or i in menu[-3:]:
                 links.append([s,i])
                 print(f"{s}- {i}")
                 s+=1
-        links.append([s,"local"])
-        print(f"{s}- başka bir konum ver \n\n")
+        return links
+    
+    def links_select(self):
         
-        sel=input("select ==>> ")
+        
+        links=self.Menu()
+        sel=input("\n\n select ==>> ")
         print("\n")
         
         err=False
         for k in links:
             if sel==str(k[0]):
                 err=False
-                if k[1]=="local":
-                    self.file=input("url : ")
+                if k[1]=="başka bir konum ver":
+                    self.dosyalari_iceri_aktar(input("file_localetion : "))
+                elif k[1] =="url ver":
+                    
+                    file_name=input("file_name : ")
+                    url=input("url : ")
+                    try:
+                        self.start(file_name,url)
+                    except:
+                        self.error("link hatalı tekrar dene",True)
+                    
+                elif k[1]=="çıkış":
+                    print("çıkılıyor ...")
+                    time.sleep(2)
+                    exit()
                 else:
-                    print("girdi")
-                    self.file=k[1]
+                    self.dosyalari_iceri_aktar(k[1])
                 break
+                
             else:
                 err=True
         if err:
@@ -86,35 +104,38 @@ class indir():
 
 
 
-        links_name =self.klasör_ismi() if self.klas == True else ""
-        return links_name
-    def klasör_ismi(self):
-        ##################################### dosya isimleri alma
         
-        icerik=None
-        with open (self.file,"r",encoding="utf-8") as f:
-            icerik=f.read()
-        name=[]
-        for i in icerik.split("\n"):
-            if i.startswith("//**"):
-               name.append(i[4:])
 
-        if len(name)<1:
-            self.error("dosyada indirilecek lik yok tekrar deneyiniz ")
+    def dosyalari_iceri_aktar(self,file_local):
+        try:
+            with open (file_local,"r",encoding="utf-8") as f:
+                self.file=f.read()
+        except:
+            self.error("dosya konumu hatalı lüten dosya konumunu düzgün yazın")
             self.links_select()
             
+    def alt_klasör_ismi(self):
+        ##################################### dosya isimleri alma
+        name=[]
+        for i in self.file.split("\n"):
+             if i.startswith("//**"):
+                  name.append(i[4:])
+                                           
+
+        if len(name)<1:
+             self.error("dosyada indirilecek lik yok tekrar deneyiniz ")
+             self.links_select()
+                                        
         else:
             return name
         
         
     def dosya_ayikla(self):
         ######################################  dosya işlemleri
-        icerik=None
-        with open (self.file,"r",encoding="utf-8") as f:
-            icerik=f.read()
+        
         bol=[]
         video=[]
-        for i in icerik.split("\n"):
+        for i in self.file.split("\n"):
             
             if not (i.startswith("//**")):
                 if i not in "\n":
@@ -179,26 +200,14 @@ class indir():
         print("\n")
 
         if sor :
-            print("""
-
-                {1} - YENİ LİNK DOSYASINI SEÇİN
-                {2} - ÇIK
-            
-            """)
-
-            sec=input("selec ==>> ")
-
-            if sec=="1":
-                self.links_select()
-            else:
-                print("\n\n çıkılıyor ...")
-                exit()
+            self.links_select()
     
     def dowland(self):
         new_dir=0
         dosya=True
         for s,i in enumerate(self.video_list):
             if i=="new_dir":
+                
                 new_l=self.klasor+"/{}".format(self.klasor_ismi[new_dir])
                 
                 print(f"\n\n {self.klasor_ismi[new_dir]} klasörü indiriliyor lütfen bekleyin ..." )
